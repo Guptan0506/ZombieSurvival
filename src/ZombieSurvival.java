@@ -15,6 +15,10 @@ public class ZombieSurvival extends JPanel implements ActionListener, KeyListene
     private boolean up, down, left, right;
 
     private Timer timer;
+    private Timer secondTimer; // NEW: counts seconds
+    private int secondsSurvived = 0; // NEW
+    private int winTime = 60; // NEW: survive 60 seconds to win
+
     private Random rand = new Random();
 
     public ZombieSurvival() {
@@ -24,6 +28,18 @@ public class ZombieSurvival extends JPanel implements ActionListener, KeyListene
 
         timer = new Timer(16, this); // ~60 FPS
         timer.start();
+
+        // NEW: Timer that fires every 1000ms (1 second)
+        secondTimer = new Timer(1000, e -> {
+            secondsSurvived++;
+            if (secondsSurvived >= winTime) {
+                timer.stop();
+                secondTimer.stop();
+                JOptionPane.showMessageDialog(this, "You survived " + winTime + " seconds! You win!");
+                System.exit(0);
+            }
+        });
+        secondTimer.start();
     }
 
     private void spawnZombie() {
@@ -61,7 +77,8 @@ public class ZombieSurvival extends JPanel implements ActionListener, KeyListene
             health -= 1;
             if (health <= 0) {
                 timer.stop();
-                JOptionPane.showMessageDialog(this, "You died!");
+                secondTimer.stop();
+                JOptionPane.showMessageDialog(this, "You died after " + secondsSurvived + " seconds!");
                 System.exit(0);
             }
         }
@@ -82,9 +99,13 @@ public class ZombieSurvival extends JPanel implements ActionListener, KeyListene
         // Health bar
         g.setColor(Color.GREEN);
         g.fillRect(10, 10, health * 2, 20);
-
         g.setColor(Color.BLACK);
         g.drawRect(10, 10, 200, 20);
+
+        // NEW: Timer display
+        g.setFont(new Font("Arial", Font.BOLD, 20));
+        g.drawString("Time: " + secondsSurvived + "s", 10, 50);
+        g.drawString("Goal: " + winTime + "s", 10, 75);
     }
 
     @Override
