@@ -12,6 +12,9 @@ public class ZombieSurvival extends JPanel implements ActionListener, KeyListene
     private int zombieX, zombieY;
     private int zombieSpeed = 2;
 
+    private int highScore = 0;
+    private final String HIGH_SCORE_FILE = "highscore.txt";
+
     private boolean up, down, left, right;
 
     private Timer timer;
@@ -26,6 +29,8 @@ public class ZombieSurvival extends JPanel implements ActionListener, KeyListene
         addKeyListener(this);
         spawnZombie();
 
+        loadHighScore();
+
         timer = new Timer(16, this); // ~60 FPS
         timer.start();
 
@@ -35,7 +40,13 @@ public class ZombieSurvival extends JPanel implements ActionListener, KeyListene
             if (secondsSurvived >= winTime) {
                 timer.stop();
                 secondTimer.stop();
-                JOptionPane.showMessageDialog(this, "You survived " + winTime + " seconds! You win!");
+                if (secondsSurvived > highScore) {
+                    highScore = secondsSurvived;
+                    saveHighScore();
+                    JOptionPane.showMessageDialog(this, "You survived " + winTime + " seconds! New High Score!");
+                } else {
+                    JOptionPane.showMessageDialog(this, "You survived " + winTime + " seconds! You win!");
+                }
                 System.exit(0);
             }
         });
@@ -78,7 +89,13 @@ public class ZombieSurvival extends JPanel implements ActionListener, KeyListene
             if (health <= 0) {
                 timer.stop();
                 secondTimer.stop();
-                JOptionPane.showMessageDialog(this, "You died after " + secondsSurvived + " seconds!");
+                if (secondsSurvived > highScore) {
+                    highScore = secondsSurvived;
+                    saveHighScore();
+                    JOptionPane.showMessageDialog(this, "New High Score! " + secondsSurvived + " seconds");
+                } else {
+                    JOptionPane.showMessageDialog(this, "You died after " + secondsSurvived + " seconds!");
+                }
                 System.exit(0);
             }
         }
@@ -89,6 +106,7 @@ public class ZombieSurvival extends JPanel implements ActionListener, KeyListene
         super.paintComponent(g);
 
         // Player
+        g.drawString("High Score: " + highScore + "s", 10, 100);
         g.setColor(Color.BLUE);
         g.fillRect(playerX, playerY, 30, 30);
 
@@ -139,5 +157,30 @@ public class ZombieSurvival extends JPanel implements ActionListener, KeyListene
         frame.setSize(640, 640);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
+    }
+
+    private void loadHighScore() {
+        try {
+            java.io.File file = new java.io.File(HIGH_SCORE_FILE);
+            if (file.exists()) {
+                java.util.Scanner scanner = new java.util.Scanner(file);
+                if (scanner.hasNextInt()) {
+                    highScore = scanner.nextInt();
+                }
+                scanner.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveHighScore() {
+        try {
+            java.io.PrintWriter writer = new java.io.PrintWriter(HIGH_SCORE_FILE);
+            writer.println(highScore);
+            writer.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
